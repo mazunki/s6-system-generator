@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# reference implementation of
+# http://www.skarnet.org/software/s6/s6-log.html
+#
+set -eu
+
+source_nofail() {
+	set -a
+	test -f "${1}" && . "${1}" || :
+	set +a
+}
+source_nofail /etc/s6/logger.env
+source_nofail /etc/s6/services/%service_name_here%.env
+
+: ${LOG_DIR:=/var/log/s6-logs}
+: ${MAX_FILESIZE:=100M}
+: ${NUMBER_OF_LOGS:=10}
+: ${LOG_PREFIX:=''}
+
+mkdir -p "${LOG_DIR}/%service_name_here%"
+
+# -b blocking
+exec s6-log -b \
+	n"${NUMBER_OF_LOGS}" \
+	s"${MAX_FILESIZE}" \
+	T \
+	${LOG_PREFIX:+p${LOG_PREFIX}} \
+	"${LOG_DIR}/%service_name_here%"
+
+# vim: ts=5 sts=5 sw=5 noexpandtab
+

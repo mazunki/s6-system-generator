@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+printf '%s started\n' "%service_name_here%"
+

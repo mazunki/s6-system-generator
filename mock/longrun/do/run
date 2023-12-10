@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+source_nofail() {
+	set -a
+	test -f "${1}" && . "${1}" || :
+	set +a
+}
+source_nofail /etc/s6/config.env
+source_nofail /etc/s6/services/%service_name_here%.env
+
+exec %command_here%
+
