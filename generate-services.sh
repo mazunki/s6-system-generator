@@ -1,16 +1,19 @@
 #!/bin/sh
 set -xeu
+execlinify() {
+	printf "%s\n" "${1}" | sed 's/[[:space:]]\{0,1\}\([^;]\{1,\}\);[[:space:]]\{0,1\}/foreground { \1 }\n/g'
+}
 longrunning() {
-	name=$1; shift
-	./s6-new-service.sh "${group}:${name}" "$@"
+	name=$1; cmd="$(execlinify "${2}")"; shift 2;
+	./s6-new-service.sh "${group}:${name}" "${cmd}" "$@"
 }
 oneshot() {
-	name=$1; shift
-	./s6-new-service.sh --oneshot "${group}:${name}" "$@"
+	name=$1; cmd="$(execlinify "${2}")"; shift 2;
+	./s6-new-service.sh --oneshot "${group}:${name}" "${cmd}" "$@"
 }
 bundle() {
-	name=$1; shift
-	./s6-new-service.sh --bundle "${group}:${name}" "$@"
+	name=$1; cmd="$(execlinify "${2}")"; shift 2;
+	./s6-new-service.sh --bundle "${group}:${name}" "${cmd}" "$@"
 }
 
 export DESTINATION="${PWD}/services"
@@ -70,8 +73,10 @@ longrunning nginx 'nginx -g "daemon off;"' \
 	corenet files
 
 group="desktop"
-longrunning dbus 'dbus-uuidgen --ensure=/etc/machine-id; install -m755 -o messagebus -g messagebus -d /run/dbus; dbus-daemon --system --nofork --nopidfile --print-pid=3' \
+oneshot machine-uuid 'dbus-uuidgen --ensure=/etc/machine-id' \
 	hostname localhost files
+longrunning dbus 'install -m755 -o messagebus -g messagebus -d /run/dbus; dbus-daemon --system --nofork --nopidfile --print-pid=3' \
+	machine-uuid hostname localhost files
 longrunning polkit '/usr/lib/polkit-1/polkitd' \
 	hostname localhost files dbus
 

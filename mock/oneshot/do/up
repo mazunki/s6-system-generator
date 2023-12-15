@@ -1,12 +1,14 @@
-#!/bin/sh
-set -eu
-source_nofail() {
-	set -a
-	test -f "${1}" && . "${1}" || :
-	set +a
-}
-source_nofail /etc/s6/config.env
-source_nofail /etc/s6/services/%service_name_here%.env
+#!/bin/execlineb -P
 
+# Define file paths
+define global_env /etc/s6/env.d/00_environment
+define group_env /etc/s6/env.d/10_%service_group_here%
+define service_env /etc/s6/env.d/20_%service_name_here%
+
+if { test -f ${global_env} } envfile ${global_env}
+if { test -f ${group_env} } envfile ${group_env}
+if { test -f ${service_env} } envfile ${service_env}
+
+# Execute the command
 %command_here%
 
