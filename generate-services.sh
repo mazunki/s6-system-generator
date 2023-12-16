@@ -41,7 +41,7 @@ oneshot udev 'udevd --debug'
 oneshot udevadm 'foreground { udevadm trigger --action=add --type=subsystems }' 'foreground { udevadm trigger --action=add --type=devices }' 'udevadm settle'
 bundle devices udev udevadm
 
-oneshot hostname 'echo ${HOSTNAME} > /proc/sys/kernel/hostname' -- \
+oneshot hostname 'redirfd -w 1 /proc/sys/kernel/hostname echo ${HOSTNAME}'  -- \
 	mount-procfs
 oneshot localhost 'ip link set up dev lo' -- \
 	mount-devfs mount-sysfs
