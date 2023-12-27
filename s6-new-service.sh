@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
-
+HERE="$(dirname "$(realpath "$0")")"
+. "${HERE}"/paths.sh
+. "${HERE}"/fmt.sh
 
 usage() {
     printf 'Usage: %s\n' "$0 <group>:<name_of_service> <command to run> [dependencies...]"
@@ -20,9 +22,6 @@ if [ $# -lt 2 ]; then
 	usage
 fi
 
-HERE="$(dirname "$(realpath "$0")")"
-. "${HERE}"/fmt.sh
-
 FULL_SERVICE_NAME="${1}"
 SERVICE_NAME="${FULL_SERVICE_NAME##*:}"
 SERVICE_GROUP="${FULL_SERVICE_NAME%:*}"
@@ -34,18 +33,17 @@ for arg; do
 	shift;
 	if test "${arg}" = '--'; then break; fi
 	COMMAND="${COMMAND}${NEWLINE}${arg}"
-	NEWLINE='
-'
+	NEWLINE=$'\n'
 done
 
 : ${DOWN_COMMAND:=true}
 printf '%s\n' "Building service $(fmt_info "${FULL_SERVICE_NAME}") with command '$(fmt_debug "${COMMAND}")'"
 
-: ${DESTINATION:=./services}
-mkdir -p "${DESTINATION}/${SERVICE_GROUP}"
+: ${S6_SERVICE_HOME:=./services}
+mkdir -p "${S6_SERVICE_HOME}/${SERVICE_GROUP}"
 
-SERVICE_DO_DIR="${DESTINATION}/${SERVICE_GROUP}/${SERVICE_NAME}-do" 
-SERVICE_LOOK_DIR="${DESTINATION}/${SERVICE_GROUP}/${SERVICE_NAME}-look" 
+SERVICE_DO_DIR="${S6_SERVICE_HOME}/${SERVICE_GROUP}/${SERVICE_NAME}-do" 
+SERVICE_LOOK_DIR="${S6_SERVICE_HOME}/${SERVICE_GROUP}/${SERVICE_NAME}-look" 
 
 cp -rT "${HERE}/mock/${SRV_TYPE}/do" "${SERVICE_DO_DIR}"
 cp -rT "${HERE}/mock/${SRV_TYPE}/look" "${SERVICE_LOOK_DIR}"

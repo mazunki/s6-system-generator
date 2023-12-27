@@ -15,4 +15,14 @@ fmt_debug() {
 	reset="$(tput sgr0)"
 	printf "%s%s%s" "${colour}" "$@" "${reset}"
 }
+fmt_err() {
+	colour="$(tput setaf 1)"
+	reset="$(tput sgr0)"
+	printf "%s%s%s" "${colour}" "$@" "${reset}"
+}
+fmt_warn() {
+	colour="$(tput setaf 3)"
+	reset="$(tput sgr0)"
+	printf "%s%s%s" "${colour}" "$@" "${reset}"
+}
 

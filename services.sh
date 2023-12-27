@@ -1,25 +1,19 @@
 #!/bin/sh
-set -eu
-
-HERE="$(dirname "$(realpath "$0")")"
-. "${HERE}"/fmt.sh
-
-longrunning() {
-	name=$1; shift;
-	./s6-new-service.sh "${group}:${name}" "$@"
-}
-oneshot() {
-	name=$1; shift;
-	./s6-new-service.sh --oneshot "${group}:${name}" "$@"
-}
-bundle() {
-	name=$1; shift;
-	./s6-new-service.sh --bundle "${group}:${name}" -- "$@"
-}
-
-export DESTINATION="${PWD}/services"
-test ! -e "${DESTINATION}" || { printf '%s\n' "${DESTINATION} already exists. Consider deleting it:" ": rm -r ${DESTINATION}"; exit 1; }
-
+#
+# declare ${group} before creating the services.
+#
+# longrunning <service_name> <cmd...> [-- [dependencies...]]
+#
+#	cmd: each argument is a newline. runs with #!/bin/sh
+#	dependencies: other service_names
+#
+# oneshot <service_name> <cmd...> [-- [dependencies...]]
+#	cmd: each argument is a newline. runs with execline
+#	dependencies: each dependency is a service_name
+#
+# bundle <service_name> [--] [items...]
+#	items: each item is a service_name
+#
 group="runtime"
 oneshot mount-proc 'mount -o nusuid,noexec,nodev -t proc proc /proc'
 oneshot mount-dev 'mount -t tmpfs devtmpfs /dev' -- \
@@ -93,6 +87,4 @@ longrunning logind '/lib64/elogind/elogind'
 group="users"
 # longrunning mazunki 's6-usertree'
 # longrunning "games" "/path/to/games-command"
-
-printf '%s\n' "$(fmt_info "All services have been created successfully.")" "$(fmt_info "Hopefully.")" "$(fmt_ok "This fills you with determination.")"
-
+#
