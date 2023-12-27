@@ -1,12 +1,8 @@
-#!/bin/sh
-set -eu
-source_nofail() {
-	set -a
-	test -f "${1}" && . "${1}" || :
-	set +a
-}
-source_nofail /etc/s6/config.env
-source_nofail /etc/s6/services/%service_name_here%.env
+#!/bin/execlineb -P
 
-exec %command_here%
+foreground {
+	printf "eepy time from: %s\n" "%service_name_here%"
+}
+
+%down_command_here%
 

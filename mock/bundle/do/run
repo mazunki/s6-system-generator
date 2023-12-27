@@ -1,5 +1,4 @@
-#!/bin/sh
-set -eu
+#!/bin/execlineb -P
 
-printf '%s started\n' "%service_name_here%"
+exec printf '%s started\n' "%service_name_here%"
 
