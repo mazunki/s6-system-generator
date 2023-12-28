@@ -1,4 +1,16 @@
 #!/bin/execlineb -P
 
-exec printf '%s started\n' "%service_name_here%"
+define env_d /etc/s6/env.d
+multisubstitute {
+	define global_env ${env_d}/00_environment
+	define group_env ${env_d}/10_%service_group_here%
+	define service_env ${env_d}/20_%service_name_here%
+}
+
+envfile -I ${global_env}
+envfile -I ${group_env}
+envfile -I ${service_env}
+
+exec printf 'bundle: good morning from %s (%s)\n' '%service_name_here%' '%service_group_here%
+
 

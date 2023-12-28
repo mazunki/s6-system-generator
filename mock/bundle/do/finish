@@ -11,5 +11,5 @@ envfile -I ${global_env}
 envfile -I ${group_env}
 envfile -I ${service_env}
 
-%command_here%
+exec printf 'bundle: eepy time for %s (%s)\n' '%service_name_here%' '%service_group_here%
 
