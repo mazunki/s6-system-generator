@@ -1,9 +1,9 @@
 #!/bin/sh
 set -eu
 
-HERE="$(dirname "$(realpath "$0")")"
-. "${HERE}"/paths.sh
-. "${HERE}"/fmt.sh
+BIN="$(dirname "$(realpath "$0")")"
+. "${BIN}"/paths.sh
+. "${BIN}"/fmt.sh
 
 add_to_tree() {
 	local group="$1"
@@ -19,17 +19,17 @@ add_to_tree() {
 
 longrunning() {
 	name=$1; shift;
-	"${HERE}"/s6-new-service.sh "${group}:${name}" "$@"
+	"${BIN}"/s6-new-service.sh "${group}:${name}" "$@"
 	add_to_tree "${group}" "${name}"
 }
 oneshot() {
 	local name=$1; shift;
-	"${HERE}"/s6-new-service.sh --oneshot "${group}:${name}" "$@"
+	"${BIN}"/s6-new-service.sh --oneshot "${group}:${name}" "$@"
 	add_to_tree "${group}" "${name}"
 }
 bundle() {
 	local name=$1; shift;
-	"${HERE}"/s6-new-service.sh --bundle "${group}:${name}" -- "$@"
+	"${BIN}"/s6-new-service.sh --bundle "${group}:${name}" -- "$@"
 	add_to_tree "${group}" "${name}"
 }
 

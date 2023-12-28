@@ -2,12 +2,12 @@
 #
 # declare ${group} before creating the services.
 #
-# longrunning <service_name> <cmd...> [-- [dependencies...]]
+# longrunning <service_name> <cmd...> [-- [dependencies...] [-- [down_cmd...]]]
 #
 #	cmd: each argument is a newline. runs with #!/bin/sh
 #	dependencies: other service_names
 #
-# oneshot <service_name> <cmd...> [-- [dependencies...]]
+# oneshot <service_name> <cmd...> [-- [dependencies...] [-- [down_cmd...]]]
 #	cmd: each argument is a newline. runs with execline
 #	dependencies: each dependency is a service_name
 #
@@ -17,17 +17,17 @@
 group="runtime"
 oneshot mount-proc 'mount -o nusuid,noexec,nodev -t proc proc /proc'
 oneshot mount-dev 'mount -t tmpfs devtmpfs /dev' -- \
-	mount-procfs
+	mount-proc
 oneshot mount-sys 'mount -t sysfs sys /sys' -- \
-	mount-procfs
+	mount-proc
 oneshot mount-efivars 'mount -n -t efivarfs -o ro efivarfs /sys/firmware/efi/efivars' -- \
-	mount-procfs mount-sys
+	mount-proc mount-sys
 oneshot mount-tmpfs 'mount -t tmpfs tmpfs /tmp' -- \
-	mount-procfs
+	mount-proc
 oneshot mount-cgroups 'mount -t cgroup cgroup /sys/fs/cgroup' -- \
-	mount-procfs mount-sys
+	mount-proc mount-sys
 oneshot early-filesystems 'mount -a -O no_netdev' -- \
-	mount-procfs mount-sys mount-cgroups
+	mount-proc mount-sys mount-cgroups
 
 
 group="core"
@@ -36,18 +36,18 @@ oneshot udevadm 'foreground { udevadm trigger --action=add --type=subsystems }' 
 bundle devices udev udevadm
 
 oneshot hostname 'redirfd -w 1 /proc/sys/kernel/hostname echo ${HOSTNAME}'  -- \
-	mount-procfs
+	mount-proc
 oneshot localhost 'ip link set up dev lo' -- \
-	mount-devfs mount-sysfs
-oneshot corenet 'ip link set up dev "${interface:-eth0}"' -- \
-	mount-devfs mount-sysfs localhost
+	mount-dev mount-sys
+oneshot corenet 'ip link set up dev ${interface}' -- \
+	mount-dev mount-sys localhost
 
 longrunning tty1 'agetty -L --noclear --login-program /usr/bin/tmux tty1 115200 linux' -- \
-	hostname mount-devfs
+	hostname mount-dev
 longrunning tty2 'agetty -L --noclear --login-program /usr/bin/ly tty2 115200 linux' -- \
-	hostname mount-devfs
+	hostname mount-dev
 longrunning tty3 'agetty -L --noclear --login-program /usr/bin/tmux tty3 115200 linux' -- \
-	hostname mount-devfs
+	hostname mount-dev
 
 longrunning dhcpcd 'dhcpcd --nobackground' -- \
 	corenet hostname
@@ -55,7 +55,7 @@ longrunning cronie 'crond -n' -- \
 	early-filesystems
 
 oneshot files 'mount -a' -- \
-	mount-devfs early-filesystems mount-efivars
+	mount-dev early-filesystems mount-efivars
 
 
 group="exposed"
